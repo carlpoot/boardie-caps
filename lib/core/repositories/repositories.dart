@@ -1,0 +1,14 @@
+export 'amenity_repository.dart';
+export 'campus_repository.dart';
+export 'crud_repository.dart';
+export 'landlord_profile_repository.dart';
+export 'property_image_repository.dart';
+export 'property_repository.dart';
+export 'report_repository.dart';
+export 'reported_listing_repository.dart';
+export 'room_repository.dart';
+export 'room_request_repository.dart';
+export 'saved_property_repository.dart';
+export 'student_profile_repository.dart';
+export 'user_repository.dart';
+export 'visit_request_repository.dart';
