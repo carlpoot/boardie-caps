@@ -40,17 +40,19 @@ lib/
       verification/           # Verify Listings: Verify/Reject a pending Property
       reported_listings/      # Review Reported Listings: Reviewed/Dismissed/Reject Property
       reports/                # PDF generation, system-wide (not landlord-scoped)
-    sos/                   # (empty — reserved for later phases)
+    sos/                   # Emergency SOS (Figure E6): static hotline list + screen
+      data/                   # hardcoded Hotline list -- no ERD entity/repository
     map/                   # (empty — reserved for later phases)
-    shared/                # guest_home placeholder
+    shared/                # guest_home: bottom-nav shell (Home placeholder + SOS)
 ```
 
 Phase 1 was models and the data layer only. Phase 2 added authentication
 against a mock `AuthRepository` and role-based routing. Phase 3a/3b built
 every student-facing screen. Phase 4 built every landlord-facing screen.
-Phase 5 (this one) builds every admin-facing screen. A design-system
-retrofit ran between Phase 4 and Phase 5 -- see
-[Design system](#design-system-theme-retrofit) below.
+Phase 5 built every admin-facing screen. A design-system retrofit ran
+between Phase 4 and Phase 5 -- see
+[Design system](#design-system-theme-retrofit) below. Phase 6 (this one)
+adds the Emergency SOS screen, reachable by every role.
 
 ## Data model spec
 
@@ -129,7 +131,9 @@ route attempt back to that role's own home route. Two assumptions made
 while building this, flagged for review:
 
 - **SOS is a Guest-tier action** (no login required), per the task's own
-  note that it's public safety info.
+  note that it's public safety info. Phase 6 built on this by making it
+  reachable from every role's own bottom nav, not just Guest's -- see
+  [Emergency SOS](#emergency-sos-phase-6) below.
 - **Landlord and Admin do *not* inherit the Guest-tier browsing routes.**
   The spec defines Student's permissions as "everything Guest can do, plus
   ...", but Landlord's and Admin's permission lists are standalone
@@ -405,6 +409,88 @@ needed for this phase either.
     returned rows span both `landlord_id`s. The landlord side's equivalent
     functions remain inline and not similarly covered -- flagging that as
     a pre-existing gap this phase didn't introduce, not one it fully closed.
+
+## Emergency SOS (Phase 6)
+
+Matches Figure E6: a red header banner ("Emergency SOS -- Quick access to
+emergency services and hotlines") over a scrollable list of four colored
+hotline cards -- National Emergency (red), Police (blue), Hospital/Clinic
+(green), Fire (orange). Tapping a card's phone icon launches the device
+dialer via a `tel:` URI through `url_launcher`.
+
+- **No `HotlineEntity` in the data layer.** The ERD has no table for
+  hotline data -- the DFD's D6 "Reports and Hotline Data" store bundles it
+  with `Reports`, but nothing models hotline rows -- so
+  [`hotlines.dart`](lib/features/sos/data/hotlines.dart) is a static,
+  hardcoded `List<Hotline>` const, per the task's own instruction. Moving
+  this into Firestore later (to make it admin-editable) means adding a real
+  repository behind the same shape; nothing about the screen changes beyond
+  swapping the const list for a provider.
+- **Every color on the cards reuses the existing semantic palette** --
+  `AppColors.statusFull`/`primary`/`statusAvailable`/`statusLimited` for
+  red/blue/green/orange respectively -- no new hues were added for this
+  screen, per the task's own constraint.
+- **Reachable from the bottom nav for every role, not a route of its
+  own.** `SosScreen` is a tab on all four home shells (`GuestHomeScreen`,
+  `StudentHomeScreen`, `LandlordHomeScreen`, `AdminHomeScreen`) rather than
+  living behind a single shared `/sos` route -- the router's `_roleAllowed`
+  guard gates each `/student`, `/landlord`, `/admin` prefix to its own
+  role, so a standalone route would need its own carve-out to be reachable
+  from every role's shell without a redirect bouncing it away. Putting it
+  on every shell's own tab list sidesteps that entirely, and matches the
+  existing pattern of every other capability living inside a shell's tabs
+  rather than as a route. This also meant turning `GuestHomeScreen` from a
+  single-screen placeholder into a small two-tab shell (Home placeholder +
+  SOS) -- the first bottom nav guest sessions have had.
+
+  **A real, hardcoded phone-number bug found via testing:** building a
+  `Uri(scheme: 'tel', path: hotline.phoneNumber)` directly from a formatted
+  number like `"(052) 480-5000"` percent-encodes the space into a literal
+  `%20` (confirmed by asserting on the exact URI a test's fake platform
+  received). RFC 3966's `tel:` grammar has no notion of a space at all --
+  only `-`, `.`, `(`, `)` are recognized visual separators -- so `%20`
+  there isn't valid `tel:` syntax. Fixed by stripping whitespace before
+  building the URI (`lib/features/sos/sos_screen.dart`); a regression test
+  asserts the built URI never contains a raw or percent-encoded space.
+
+  **The most significant finding, from actually verifying `launchUrl`
+  rather than assuming it works because nothing throws (per the task's own
+  explicit ask):** a genuine, unmocked `launchUrl()` call was found to
+  **hang indefinitely** under `flutter_test` on this Windows dev machine --
+  not fail fast, not throw, not time out on its own. Confirmed two ways:
+  (1) a widget test that tapped the call button and used `pumpAndSettle`
+  reported no failure, because `pumpAndSettle` only waits for scheduled
+  frames/animations, not for an un-awaited `Future` sitting in the
+  background -- the pending call was simply abandoned when the test
+  process exited, silently proving nothing; (2) a plain `test()` that
+  `await`s `launchUrl()` directly never returned within 120+ seconds and
+  had to be killed as a hung process. This is a materially different (and
+  more dangerous) failure mode than `printing`'s `Printing.layoutPdf`
+  (Phase 4), which fails fast and silently under `flutter_test` with no
+  platform channel available -- a naive test here would hang a CI run or a
+  colleague's `flutter test` indefinitely instead of just passing
+  vacuously. Because of this, every SOS widget test
+  ([sos_screen_test.dart](test/features/sos/sos_screen_test.dart)) replaces
+  `UrlLauncherPlatform.instance` with a fake in `setUp`/`tearDown` --
+  never letting a real call reach a platform channel at all -- rather than
+  relying on it happening to fail safely.
+
+  **What was verified on an actual running target, and what wasn't:** ran
+  the real Flutter web app (`flutter run -d web-server`, not the test
+  harness) in a Chromium tab and tapped the National Emergency Hotline's
+  call icon while watching the browser's own console and network logs.
+  Confirmed: no console error, no new network request, no new browser tab,
+  and no in-app "could not open the dialer" snackbar (meaning `launchUrl`
+  resolved `true`). **Not confirmed:** that any dialer, phone app, or
+  OS-level handler actually opened -- there is no observable artifact,
+  from Flutter's side or the browser's, that proves one did. This matches
+  what's documented in the code: on web, `launchUrl` reports whether the
+  browser *accepted* the request to launch a `tel:` handler, not whether a
+  call was ever placed, and a `true` result with an unregistered handler
+  can be entirely indistinguishable from a `true` result with a real one.
+  Real Android/iOS device verification (where a `tel:` launch opens a
+  directly observable native dialer) was not performed -- no such device
+  or emulator was available in this environment.
 
 ## Getting Started
 

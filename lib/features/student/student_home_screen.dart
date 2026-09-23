@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../auth/providers/auth_notifier.dart';
+import '../sos/sos_screen.dart';
 import 'home/home_tab_screen.dart';
 import 'map/map_view.dart';
 import 'profile/profile_screen.dart';
@@ -14,8 +15,8 @@ Future<void> _logout(BuildContext context, WidgetRef ref) async {
 }
 
 /// Bottom-nav shell for the student role: Home (browse), Map, Reservations,
-/// and Profile tabs. Compare Properties is reached from Home/Saved, not a
-/// bottom-nav destination of its own.
+/// Profile, and SOS tabs. Compare Properties is reached from Home/Saved,
+/// not a bottom-nav destination of its own.
 class StudentHomeScreen extends ConsumerStatefulWidget {
   const StudentHomeScreen({super.key});
 
@@ -31,6 +32,7 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
     MapView(),
     ReservationsScreen(),
     ProfileScreen(),
+    SosScreen(),
   ];
 
   @override
@@ -71,6 +73,11 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
             icon: Icon(Icons.person_outline),
             selectedIcon: Icon(Icons.person),
             label: 'Profile',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.sos_outlined),
+            selectedIcon: Icon(Icons.sos),
+            label: 'SOS',
           ),
         ],
       ),

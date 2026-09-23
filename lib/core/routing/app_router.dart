@@ -40,7 +40,13 @@ abstract final class AppRoutes {
   // TODO(phase-3): '/guest/search'        -- Search and Filter
   // TODO(phase-3): '/guest/map'           -- View 3D GIS Map / Nearby Utilities
   // TODO(phase-3): '/guest/property/:id'  -- View Property Details / Check Room Availability
-  // TODO(phase-4): '/guest/sos'           -- Access SOS Hotlines
+
+  // Access SOS Hotlines (Figure E6) lives as a bottom-nav tab on EVERY
+  // role's own home shell (guest/student/landlord/admin), not a route of
+  // its own -- it needs no login, per the auth phase's decision that SOS
+  // is Guest-tier public-safety information, but it also needs to be
+  // reachable without leaving whatever shell an authenticated role is
+  // already in, so it isn't gated behind the '/guest' prefix either.
 
   static const studentHome = '/student/home';
 

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../auth/providers/auth_notifier.dart';
+import '../sos/sos_screen.dart';
 import 'reported_listings/admin_reported_listings_screen.dart';
 import 'reports/admin_reports_screen.dart';
 import 'users/admin_users_screen.dart';
@@ -14,8 +15,8 @@ Future<void> _logout(BuildContext context, WidgetRef ref) async {
 }
 
 /// Bottom-nav shell for the admin role: Users, Verify Listings, Reported
-/// Listings, and Reports tabs -- matching the Administrator column of the
-/// Use Case diagram.
+/// Listings, Reports, and SOS tabs -- matching the Administrator column of
+/// the Use Case diagram (plus SOS, reachable by every role).
 class AdminHomeScreen extends ConsumerStatefulWidget {
   const AdminHomeScreen({super.key});
 
@@ -31,6 +32,7 @@ class _AdminHomeScreenState extends ConsumerState<AdminHomeScreen> {
     AdminVerificationScreen(),
     AdminReportedListingsScreen(),
     AdminReportsScreen(),
+    SosScreen(),
   ];
 
   @override
@@ -71,6 +73,11 @@ class _AdminHomeScreenState extends ConsumerState<AdminHomeScreen> {
             icon: Icon(Icons.summarize_outlined),
             selectedIcon: Icon(Icons.summarize),
             label: 'Reports',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.sos_outlined),
+            selectedIcon: Icon(Icons.sos),
+            label: 'SOS',
           ),
         ],
       ),

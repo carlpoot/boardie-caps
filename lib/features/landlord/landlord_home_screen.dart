@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../auth/providers/auth_notifier.dart';
+import '../sos/sos_screen.dart';
 import 'properties/landlord_properties_screen.dart';
 import 'reports/landlord_reports_screen.dart';
 import 'room_requests/landlord_room_requests_screen.dart';
@@ -14,7 +15,7 @@ Future<void> _logout(BuildContext context, WidgetRef ref) async {
 }
 
 /// Bottom-nav shell for the landlord role: Properties, Visit Requests, Room
-/// Requests, and Reports tabs. Rooms management nests under a property
+/// Requests, Reports, and SOS tabs. Rooms management nests under a property
 /// (Property Details -> Manage Rooms), so it isn't a tab of its own.
 class LandlordHomeScreen extends ConsumerStatefulWidget {
   const LandlordHomeScreen({super.key});
@@ -31,6 +32,7 @@ class _LandlordHomeScreenState extends ConsumerState<LandlordHomeScreen> {
     LandlordVisitRequestsScreen(),
     LandlordRoomRequestsScreen(),
     LandlordReportsScreen(),
+    SosScreen(),
   ];
 
   @override
@@ -71,6 +73,11 @@ class _LandlordHomeScreenState extends ConsumerState<LandlordHomeScreen> {
             icon: Icon(Icons.summarize_outlined),
             selectedIcon: Icon(Icons.summarize),
             label: 'Reports',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.sos_outlined),
+            selectedIcon: Icon(Icons.sos),
+            label: 'SOS',
           ),
         ],
       ),

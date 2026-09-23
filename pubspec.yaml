@@ -51,6 +51,9 @@ dependencies:
   pdf: ^3.11.1
   printing: ^5.13.4
 
+  # Launching a tel: URI to the device dialer from the Emergency SOS screen.
+  url_launcher: ^6.3.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -61,6 +64,12 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+
+  # For mocking UrlLauncherPlatform.instance in the SOS screen's tests --
+  # a real (unmocked) launchUrl() call was found to hang indefinitely under
+  # flutter_test on this machine rather than failing fast, so tests must
+  # never let a real call reach the platform channel. See the README.
+  url_launcher_platform_interface: ^2.3.2
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
