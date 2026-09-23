@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/models/models.dart';
 import '../../../core/routing/app_router.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/status_display.dart';
 import 'landlord_properties_providers.dart';
@@ -236,8 +237,8 @@ class PropertyDetailScreen extends ConsumerWidget {
                                         removePropertyImage(ref, propertyId, image.imageId),
                                     child: const CircleAvatar(
                                       radius: 10,
-                                      backgroundColor: Colors.black54,
-                                      child: Icon(Icons.close, size: 14, color: Colors.white),
+                                      backgroundColor: AppColors.scrim,
+                                      child: Icon(Icons.close, size: 14, color: AppColors.onPrimary),
                                     ),
                                   ),
                                 ),

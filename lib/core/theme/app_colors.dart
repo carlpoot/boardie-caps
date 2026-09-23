@@ -46,4 +46,12 @@ abstract final class AppColors {
   /// The "saved"/favorite heart icon color, used on both the student
   /// Property Details screen and the Saved Properties list.
   static const favorite = Color(0xFFE53935);
+
+  /// A translucent white background for an unselected overlay control (e.g.
+  /// the Compare-mode selection circle) sitting on top of a photo.
+  static const overlayUnselected = Color(0xB3FFFFFF); // white @ 70% opacity
+
+  /// A translucent black scrim behind a small overlay control (e.g. the
+  /// remove-photo button) placed directly on top of an image.
+  static const scrim = Color(0x8A000000); // black @ 54% opacity
 }

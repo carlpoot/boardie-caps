@@ -2,16 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/models/models.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../core/theme/status_display.dart';
 import 'compare_properties_data.dart';
 import 'compare_properties_providers.dart';
-
-const _statusLabels = {
-  RoomAvailabilityStatus.available: 'Available',
-  RoomAvailabilityStatus.limited: 'Limited',
-  RoomAvailabilityStatus.full: 'Full',
-  RoomAvailabilityStatus.reserved: 'Reserved',
-};
 
 /// Side-by-side comparison of 2-3 properties (from Browse or Saved). No
 /// supporting wireframe prose for this use case -- this is a working
@@ -68,13 +63,13 @@ class _ComparisonColumn extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: const TextStyle(color: Colors.black54)),
+            Text(label, style: AppTypography.bodyMedium.copyWith(color: AppColors.onSurfaceMuted)),
             const SizedBox(width: 8),
             Flexible(
               child: Text(
                 value,
                 textAlign: TextAlign.right,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: AppTypography.titleSmall,
               ),
             ),
           ],
@@ -114,7 +109,7 @@ class _ComparisonColumn extends StatelessWidget {
                   spacing: 6,
                   runSpacing: 6,
                   children: item.amenityNames
-                      .map((a) => Chip(label: Text(a, style: const TextStyle(fontSize: 11))))
+                      .map((a) => Chip(label: Text(a, style: AppTypography.caption)))
                       .toList(),
                 ),
               const SizedBox(height: 12),
@@ -130,8 +125,11 @@ class _ComparisonColumn extends StatelessWidget {
                           child: Text(entry.room.roomType, style: Theme.of(context).textTheme.bodySmall),
                         ),
                         Text(
-                          _statusLabels[entry.availability.status]!,
-                          style: Theme.of(context).textTheme.bodySmall,
+                          entry.availability.status.label,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(color: entry.availability.status.color),
                         ),
                       ],
                     ),

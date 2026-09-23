@@ -63,12 +63,13 @@ class PropertyCard extends StatelessWidget {
                       left: 8,
                       child: CircleAvatar(
                         radius: 12,
-                        backgroundColor:
-                            selected ? Theme.of(context).colorScheme.primary : Colors.white70,
+                        backgroundColor: selected
+                            ? Theme.of(context).colorScheme.primary
+                            : AppColors.overlayUnselected,
                         child: Icon(
                           selected ? Icons.check : Icons.circle_outlined,
                           size: 16,
-                          color: selected ? Colors.white : Colors.black54,
+                          color: selected ? AppColors.onPrimary : AppColors.onSurfaceMuted,
                         ),
                       ),
                     ),

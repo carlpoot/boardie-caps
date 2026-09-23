@@ -149,10 +149,10 @@ class _HomeTabScreenState extends ConsumerState<HomeTabScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       'Nearby Boarding Houses',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: Theme.of(context).textTheme.titleSmall,
                     ),
                   ),
                   TextButton(
