@@ -3,23 +3,42 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../auth/providers/auth_notifier.dart';
+import 'properties/landlord_properties_screen.dart';
+import 'reports/landlord_reports_screen.dart';
+import 'room_requests/landlord_room_requests_screen.dart';
+import 'visit_requests/landlord_visit_requests_screen.dart';
 
 Future<void> _logout(BuildContext context, WidgetRef ref) async {
   await ref.read(authNotifierProvider.notifier).logout();
   if (context.mounted) context.go('/login');
 }
 
-/// Placeholder landing screen for the landlord role. The real property
-/// management / visit / room request / reporting screens arrive in a later
-/// phase.
-class LandlordHomeScreen extends ConsumerWidget {
+/// Bottom-nav shell for the landlord role: Properties, Visit Requests, Room
+/// Requests, and Reports tabs. Rooms management nests under a property
+/// (Property Details -> Manage Rooms), so it isn't a tab of its own.
+class LandlordHomeScreen extends ConsumerStatefulWidget {
   const LandlordHomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LandlordHomeScreen> createState() => _LandlordHomeScreenState();
+}
+
+class _LandlordHomeScreenState extends ConsumerState<LandlordHomeScreen> {
+  int _tabIndex = 0;
+
+  static const _tabs = [
+    LandlordPropertiesScreen(),
+    LandlordVisitRequestsScreen(),
+    LandlordRoomRequestsScreen(),
+    LandlordReportsScreen(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
+      key: const Key('landlord_home_shell'),
       appBar: AppBar(
-        title: const Text('Landlord'),
+        title: const Text('Boardie'),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -28,7 +47,33 @@ class LandlordHomeScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: const Center(child: Text('Logged in as landlord')),
+      body: IndexedStack(index: _tabIndex, children: _tabs),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _tabIndex,
+        onDestinationSelected: (index) => setState(() => _tabIndex = index),
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home_work_outlined),
+            selectedIcon: Icon(Icons.home_work),
+            label: 'Properties',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.event_available_outlined),
+            selectedIcon: Icon(Icons.event_available),
+            label: 'Visits',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.meeting_room_outlined),
+            selectedIcon: Icon(Icons.meeting_room),
+            label: 'Room Requests',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.summarize_outlined),
+            selectedIcon: Icon(Icons.summarize),
+            label: 'Reports',
+          ),
+        ],
+      ),
     );
   }
 }

@@ -47,6 +47,10 @@ dependencies:
   # ID generation for mock repositories.
   uuid: ^4.5.1
 
+  # PDF generation and printing/sharing for landlord reports.
+  pdf: ^3.11.1
+  printing: ^5.13.4
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

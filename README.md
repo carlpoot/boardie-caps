@@ -29,7 +29,12 @@ lib/
       reservations/          # Room Holds / Visit Requests tabs
       profile/               # personal info, saved list, campus anchor
       compare_properties/    # selection state + side-by-side comparison
-    landlord/              # landlord_home placeholder
+    landlord/              # bottom-nav shell: properties, visits, room requests, reports tabs
+      properties/            # CRUD + amenities + photos
+      rooms/                 # CRUD via RoomAvailabilityService
+      visit_requests/        # Accept/Reschedule/Decline
+      room_requests/         # Approve/Decline (never Confirm)
+      reports/               # PDF generation (pdf + printing packages)
     admin/                 # admin_home placeholder
     sos/                   # (empty — reserved for later phases)
     map/                   # (empty — reserved for later phases)
@@ -37,11 +42,9 @@ lib/
 ```
 
 Phase 1 was models and the data layer only. Phase 2 added authentication
-against a mock `AuthRepository` and role-based routing. Phase 3a built the
-first half of the student-facing screens (browsing and property details).
-Phase 3b (this one) builds the second half: visit requests, room
-requests/holds, reservations, profile, and compare properties. Landlord/Admin
-screens are still "Logged in as `<role>`" placeholders.
+against a mock `AuthRepository` and role-based routing. Phase 3a/3b built
+every student-facing screen. Phase 4 (this one) builds every landlord-facing
+screen. Admin screens are still a "Logged in as admin" placeholder.
 
 ## Data model spec
 
@@ -219,6 +222,71 @@ out of widgets so Phase 4's landlord side can reuse the exact same logic.
   student's campus anchor, and live room availability per property.
   Flagging back in case a different interaction (e.g. a persistent
   multi-select from search results only) was intended instead.
+
+## Landlord screens (Phase 4)
+
+Every landlord screen lives under `lib/features/landlord/`, reusing Phase
+1's repositories and Phase 3's `RoomAvailabilityService` -- no repository
+changes were needed for this phase. `RoomRequestService` gained two new
+methods (`approveRequest`/`declineRequest`) so every `RoomRequests` status
+transition, student- and landlord-side alike, stays in that one tested
+service rather than being re-implemented per screen.
+
+- **Manage Property Listings** (`properties/`): CRUD for `Properties`
+  scoped to `landlord_id`, with nested `Amenities` and `PropertyImages`
+  management. New properties always start `verification_status = pending`
+  -- only an admin can move that (Phase 5).
+- **Update Rooms and Occupancy** (`rooms/`, nested under a property, not
+  its own tab): CRUD for `Rooms`. Every write recalculates
+  `availability_updated_at`, and the availability badge shown here calls
+  the exact same `RoomAvailabilityService` the student side uses, so the
+  two can never disagree. `held_count` is never an editable field -- it's
+  derived from active `RoomRequests`.
+- **Respond to Visit Requests** (`visit_requests/`): every `VisitRequest`
+  against the landlord's properties, grouped by status. Accept/Reschedule/
+  Decline only act on `pending` ones; Reschedule prompts for a new
+  date/time and overwrites `requested_datetime` with it (the ERD has no
+  separate "proposed datetime" field).
+- **Respond to Room Requests** (`room_requests/`): a **separate queue**
+  from Visit Requests, never merged. Approve/Decline act on the *live*
+  (expiry-aware) `pending` status via `RoomRequestService.effectiveStatus`.
+  A landlord can never set `status = confirmed` -- that guard lives in
+  `RoomRequestService.confirmRequest` itself (student-only, per the Use
+  Case diagram), not just in the UI.
+- **Generate Landlord Reports** (`reports/`): four report types --
+  `listings`, `room_availability`, `occupancy`, `reservation` -- built as
+  real PDFs via the `pdf` package and opened via `printing`
+  (`Printing.layoutPdf`, fired without being awaited, since that dialog
+  stays open until the user dismisses it and must not block report
+  generation). Every report's content is gathered by `landlord_id` first,
+  so it's structurally impossible for one landlord's report to include
+  another's data. `Reports.created_by` is the landlord's `Users.user_id`,
+  not their `landlord_id`.
+
+  **Flagging two choices back, per the task's own ask:**
+  - **`report_type = "reservation"` covers *both* `VisitRequests` and
+    `RoomRequests`** as two sections in one PDF
+    ([report_pdf_builder.dart](lib/features/landlord/reports/report_pdf_builder.dart)).
+    The manuscript's single "reservation" report predates the split between
+    the two entities, so neither alone is a faithful reading of what that
+    report meant to cover.
+  - **No OS file picker was wired up for adding property photos**, despite
+    the task naming one. `add_image_button` on Property Details opens a
+    dialog where the landlord pastes an image URL instead. Reasoning: a
+    real picker needs an additional platform-specific package
+    (`image_picker`/`file_picker`) that wasn't among the two the task named
+    for this phase (`pdf`, `printing`), and native pickers use platform
+    channels that `flutter_test` can't drive without extensive mocking --
+    which would mean either leaving that flow untested or spending
+    disproportionate effort on a flow explicitly described as a throwaway
+    mock ("mock in-memory URL for now"). The substantive behavior --
+    creating/deleting `PropertyImages` rows with a placeholder URL standing
+    in for the eventual Firebase Storage URL -- is unaffected either way.
+  - A PDF-generation detail worth noting even though it isn't a judgment
+    call: the `pdf` package's built-in Helvetica font has no glyph for the
+    peso sign (₱, U+20B1), so PDF output uses a literal "PHP" prefix instead
+    -- the UI itself still shows ₱ everywhere else, since Flutter's own text
+    rendering has no such limitation.
 
 ## Getting Started
 

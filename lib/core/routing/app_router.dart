@@ -9,6 +9,10 @@ import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/onboarding_screen.dart';
 import '../../features/auth/screens/signup_screen.dart';
 import '../../features/landlord/landlord_home_screen.dart';
+import '../../features/landlord/properties/property_detail_screen.dart';
+import '../../features/landlord/properties/property_form_screen.dart';
+import '../../features/landlord/rooms/landlord_rooms_screen.dart';
+import '../../features/landlord/rooms/room_form_screen.dart';
 import '../../features/shared/guest_home_screen.dart';
 import '../../features/student/compare_properties/compare_properties_screen.dart';
 import '../../features/student/profile/campus_anchor_screen.dart';
@@ -58,11 +62,28 @@ abstract final class AppRoutes {
   static const studentCompare = '/student/compare';
 
   static const landlordHome = '/landlord/home';
-  // TODO(phase-3): '/landlord/properties'    -- Manage Property Listings / Update Rooms and Occupancy
-  // TODO(phase-3): '/landlord/visits'        -- Respond to Visit Requests
-  // TODO(phase-3): '/landlord/room-requests' -- Respond to Room Requests
-  // TODO(phase-3): '/landlord/reports'       -- Generate Landlord Reports
-  // TODO(phase-3): '/landlord/profile'       -- Manage Profile
+
+  // Manage Property Listings lives inside the Properties tab; pushed routes
+  // below it handle create/edit and per-property detail.
+  static const landlordPropertyForm = '/landlord/property-form';
+  static const landlordPropertyDetailsPattern = '/landlord/property/:id';
+  static String landlordPropertyDetails(String propertyId) =>
+      '/landlord/property/$propertyId';
+
+  // Update Rooms and Occupancy nests under a property (Property Details ->
+  // Manage Rooms), rather than being a tab of its own.
+  static const landlordPropertyRoomsPattern = '/landlord/property/:id/rooms';
+  static String landlordPropertyRooms(String propertyId) =>
+      '/landlord/property/$propertyId/rooms';
+  static const landlordRoomFormPattern = '/landlord/property/:id/room-form';
+  static String landlordRoomForm(String propertyId) =>
+      '/landlord/property/$propertyId/room-form';
+
+  // Respond to Visit Requests, Respond to Room Requests, and Generate
+  // Landlord Reports each live inside their own bottom-nav tab -- no
+  // dedicated route needed for the tabs themselves.
+
+  // TODO(phase-3): '/landlord/profile' -- Manage Profile
 
   static const adminHome = '/admin/home';
   // TODO(phase-3): '/admin/users'        -- Manage Users
@@ -201,6 +222,31 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.landlordHome,
         builder: (context, state) => const LandlordHomeScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.landlordPropertyForm,
+        builder: (context, state) => PropertyFormScreen(
+          existing: state.extra as Property?,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.landlordPropertyDetailsPattern,
+        builder: (context, state) => PropertyDetailScreen(
+          propertyId: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.landlordPropertyRoomsPattern,
+        builder: (context, state) => LandlordRoomsScreen(
+          propertyId: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.landlordRoomFormPattern,
+        builder: (context, state) => RoomFormScreen(
+          propertyId: state.pathParameters['id']!,
+          existing: state.extra as Room?,
+        ),
       ),
       GoRoute(
         path: AppRoutes.adminHome,

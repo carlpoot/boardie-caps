@@ -56,7 +56,7 @@ void main() {
       (WidgetTester tester) async {
     await _skipOnboarding(tester);
     await _login(tester, 'ramon.landlord@boardie.io');
-    expect(find.text('Logged in as landlord'), findsOneWidget);
+    expect(find.byKey(const Key('landlord_home_shell')), findsOneWidget);
   });
 
   testWidgets('an incorrect password stays on the login screen with an error',

@@ -149,4 +149,37 @@ class RoomRequestService {
 
     await roomRequestRepository.update(request.copyWith(status: RoomRequestStatus.cancelled));
   }
+
+  /// Approves a pending request (landlord-only action). The student can
+  /// then confirm it themselves -- see [confirmRequest]. A landlord can
+  /// never set `status = confirmed` directly; only the student's own
+  /// Confirm action does that, per the Use Case diagram.
+  Future<void> approveRequest(String requestId, {DateTime? now}) async {
+    final effectiveNow = now ?? DateTime.now();
+    final request = await roomRequestRepository.getById(requestId);
+    if (request == null) {
+      throw const RoomRequestException('Room request not found.');
+    }
+    if (effectiveStatus(request, now: effectiveNow) != RoomRequestStatus.pending) {
+      throw const RoomRequestException('This request is no longer pending.');
+    }
+
+    await roomRequestRepository.update(request.copyWith(
+      status: RoomRequestStatus.approved,
+      approvedAt: effectiveNow,
+    ));
+  }
+
+  /// Declines a pending request (landlord-only action).
+  Future<void> declineRequest(String requestId, {DateTime? now}) async {
+    final request = await roomRequestRepository.getById(requestId);
+    if (request == null) {
+      throw const RoomRequestException('Room request not found.');
+    }
+    if (effectiveStatus(request, now: now) != RoomRequestStatus.pending) {
+      throw const RoomRequestException('This request is no longer pending.');
+    }
+
+    await roomRequestRepository.update(request.copyWith(status: RoomRequestStatus.declined));
+  }
 }

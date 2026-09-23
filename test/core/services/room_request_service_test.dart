@@ -234,6 +234,89 @@ void main() {
     });
   });
 
+  group('approveRequest', () {
+    test('approves a pending request and sets approved_at', () async {
+      final request = await service.requestRoom(
+        studentId: 'student-g',
+        room: _room(),
+        landlordId: 'landlord-test',
+        now: now,
+      );
+
+      await service.approveRequest(request.requestId, now: now);
+
+      final updated = await repository.getById(request.requestId);
+      expect(updated!.status, RoomRequestStatus.approved);
+      expect(updated.approvedAt, now);
+    });
+
+    test('rejects approving a request that is not pending', () async {
+      final approved = await repository.create(RoomRequest(
+        requestId: '',
+        studentId: 'student-h',
+        roomId: 'room-1',
+        propertyId: 'property-x',
+        landlordId: 'landlord-test',
+        status: RoomRequestStatus.approved,
+        approvedAt: now,
+        createdAt: now,
+      ));
+
+      expect(
+        () => service.approveRequest(approved.requestId, now: now),
+        throwsA(isA<RoomRequestException>()),
+      );
+    });
+
+    test('rejects approving a live-expired request', () async {
+      final request = await service.requestRoom(
+        studentId: 'student-i',
+        room: _room(),
+        landlordId: 'landlord-test',
+        now: now,
+      );
+      final later = now.add(const Duration(hours: 25));
+
+      expect(
+        () => service.approveRequest(request.requestId, now: later),
+        throwsA(isA<RoomRequestException>()),
+      );
+    });
+  });
+
+  group('declineRequest', () {
+    test('declines a pending request', () async {
+      final request = await service.requestRoom(
+        studentId: 'student-j',
+        room: _room(),
+        landlordId: 'landlord-test',
+        now: now,
+      );
+
+      await service.declineRequest(request.requestId, now: now);
+
+      final updated = await repository.getById(request.requestId);
+      expect(updated!.status, RoomRequestStatus.declined);
+    });
+
+    test('rejects declining an already-declined request', () async {
+      final declined = await repository.create(RoomRequest(
+        requestId: '',
+        studentId: 'student-k',
+        roomId: 'room-1',
+        propertyId: 'property-x',
+        landlordId: 'landlord-test',
+        status: RoomRequestStatus.declined,
+        createdAt: now,
+      ));
+
+      expect(
+        () => service.declineRequest(declined.requestId, now: now),
+        throwsA(isA<RoomRequestException>()),
+      );
+    });
+  });
+
   group('countActiveHolds', () {
     test('excludes live-expired holds', () async {
       await service.requestRoom(
