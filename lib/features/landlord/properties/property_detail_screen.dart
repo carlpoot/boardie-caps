@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 
 import '../../../core/models/models.dart';
 import '../../../core/routing/app_router.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../core/theme/status_display.dart';
 import 'landlord_properties_providers.dart';
 
 class PropertyDetailScreen extends ConsumerWidget {
@@ -258,21 +260,9 @@ class _VerificationBadge extends StatelessWidget {
 
   final VerificationStatus status;
 
-  static const _labels = {
-    VerificationStatus.pending: 'Pending Verification',
-    VerificationStatus.verified: 'Verified',
-    VerificationStatus.rejected: 'Rejected',
-  };
-
-  static const _colors = {
-    VerificationStatus.pending: Colors.orange,
-    VerificationStatus.verified: Colors.green,
-    VerificationStatus.rejected: Colors.red,
-  };
-
   @override
   Widget build(BuildContext context) {
-    final color = _colors[status]!;
+    final color = status.color;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
@@ -280,8 +270,8 @@ class _VerificationBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
-        _labels[status]!,
-        style: TextStyle(color: color, fontWeight: FontWeight.bold),
+        status.label,
+        style: AppTypography.labelLarge.copyWith(color: color),
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/routing/app_router.dart';
+import '../../../core/theme/app_colors.dart';
 import '../compare_properties/compare_selection_provider.dart';
 import 'profile_providers.dart';
 
@@ -58,12 +59,15 @@ class _SavedPropertiesScreenState extends ConsumerState<SavedPropertiesScreen> {
       appBar: AppBar(
         title: const Text('Saved Properties'),
         actions: [
+          // Explicit onPrimary color, not the themed TextButton foreground
+          // (which is brand blue) -- this button sits on the AppBar's own
+          // blue background, where it needs to contrast instead of match.
           TextButton(
             key: const Key('toggle_saved_compare_mode_button'),
             onPressed: _toggleCompareMode,
             child: Text(
               _compareMode ? 'Cancel' : 'Compare',
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: AppColors.onPrimary),
             ),
           ),
         ],
@@ -101,7 +105,7 @@ class _SavedPropertiesScreenState extends ConsumerState<SavedPropertiesScreen> {
                       : IconButton(
                           key: Key('unsave_$propertyId'),
                           icon: const Icon(Icons.favorite),
-                          color: Colors.redAccent,
+                          color: AppColors.favorite,
                           tooltip: 'Remove from saved',
                           onPressed: () => _unsave(propertyId),
                         ),

@@ -3,23 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/models/models.dart';
 import '../../../core/routing/app_router.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../core/theme/status_display.dart';
 import 'landlord_rooms_providers.dart';
-
-const _statusLabels = {
-  RoomAvailabilityStatus.available: 'Available',
-  RoomAvailabilityStatus.limited: 'Limited',
-  RoomAvailabilityStatus.full: 'Full',
-  RoomAvailabilityStatus.reserved: 'Reserved',
-};
-
-const _statusColors = {
-  RoomAvailabilityStatus.available: Colors.green,
-  RoomAvailabilityStatus.limited: Colors.orange,
-  RoomAvailabilityStatus.full: Colors.red,
-  RoomAvailabilityStatus.reserved: Colors.blueGrey,
-};
 
 class LandlordRoomsScreen extends ConsumerWidget {
   const LandlordRoomsScreen({super.key, required this.propertyId});
@@ -74,9 +62,7 @@ class LandlordRoomsScreen extends ConsumerWidget {
                 itemBuilder: (context, index) {
                   final room = rooms[index];
                   final availability = availabilities[room.roomId];
-                  final color = availability == null
-                      ? Colors.grey
-                      : _statusColors[availability.status]!;
+                  final color = availability?.status.color ?? AppColors.statusNeutral;
 
                   return Card(
                     child: ListTile(
@@ -96,7 +82,7 @@ class LandlordRoomsScreen extends ConsumerWidget {
                               backgroundColor: color.withValues(alpha: 0.15),
                               child: Text(
                                 '${availability.availableSlots}',
-                                style: TextStyle(color: color, fontWeight: FontWeight.bold),
+                                style: AppTypography.titleSmall.copyWith(color: color),
                               ),
                             ),
                       trailing: Row(
@@ -110,8 +96,8 @@ class LandlordRoomsScreen extends ConsumerWidget {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
-                                _statusLabels[availability.status]!,
-                                style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
+                                availability.status.label,
+                                style: AppTypography.statusBadge.copyWith(color: color),
                               ),
                             ),
                           IconButton(

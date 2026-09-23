@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/models/models.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../core/theme/status_display.dart';
 import 'visit_request_providers.dart';
 
 class VisitRequestCard extends ConsumerWidget {
@@ -16,29 +18,11 @@ class VisitRequestCard extends ConsumerWidget {
     VisitRequestStatus.rescheduled,
   };
 
-  static const _statusLabels = {
-    VisitRequestStatus.pending: 'Pending',
-    VisitRequestStatus.accepted: 'Accepted',
-    VisitRequestStatus.rescheduled: 'Rescheduled',
-    VisitRequestStatus.declined: 'Declined',
-    VisitRequestStatus.completed: 'Completed',
-    VisitRequestStatus.cancelled: 'Cancelled',
-  };
-
-  static const _statusColors = {
-    VisitRequestStatus.pending: Colors.orange,
-    VisitRequestStatus.accepted: Colors.green,
-    VisitRequestStatus.rescheduled: Colors.blue,
-    VisitRequestStatus.declined: Colors.red,
-    VisitRequestStatus.completed: Colors.blueGrey,
-    VisitRequestStatus.cancelled: Colors.grey,
-  };
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final request = item.request;
     final dateFormat = DateFormat('EEE, MMM d, y · h:mm a');
-    final color = _statusColors[request.status]!;
+    final color = request.status.color;
 
     return Card(
       child: Padding(
@@ -62,8 +46,8 @@ class VisitRequestCard extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    _statusLabels[request.status]!,
-                    style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
+                    request.status.label,
+                    style: AppTypography.statusBadge.copyWith(color: color),
                   ),
                 ),
               ],

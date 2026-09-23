@@ -4,30 +4,14 @@ import 'package:intl/intl.dart';
 
 import '../../../core/models/models.dart';
 import '../../../core/services/room_request_service.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../core/theme/status_display.dart';
 import 'room_request_providers.dart';
 
 class RoomRequestCard extends ConsumerWidget {
   const RoomRequestCard({super.key, required this.item});
 
   final RoomRequestListItem item;
-
-  static const _statusLabels = {
-    RoomRequestStatus.pending: 'Pending',
-    RoomRequestStatus.approved: 'Approved',
-    RoomRequestStatus.confirmed: 'Confirmed',
-    RoomRequestStatus.declined: 'Declined',
-    RoomRequestStatus.expired: 'Expired',
-    RoomRequestStatus.cancelled: 'Cancelled',
-  };
-
-  static const _statusColors = {
-    RoomRequestStatus.pending: Colors.orange,
-    RoomRequestStatus.approved: Colors.blue,
-    RoomRequestStatus.confirmed: Colors.green,
-    RoomRequestStatus.declined: Colors.red,
-    RoomRequestStatus.expired: Colors.grey,
-    RoomRequestStatus.cancelled: Colors.grey,
-  };
 
   static const _cancellable = {RoomRequestStatus.pending, RoomRequestStatus.approved};
 
@@ -64,7 +48,7 @@ class RoomRequestCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final request = item.request;
     final status = item.effectiveStatus;
-    final color = _statusColors[status]!;
+    final color = status.color;
     final dateFormat = DateFormat('EEE, MMM d, y · h:mm a');
 
     return Card(
@@ -92,8 +76,8 @@ class RoomRequestCard extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    _statusLabels[status]!,
-                    style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
+                    status.label,
+                    style: AppTypography.statusBadge.copyWith(color: color),
                   ),
                 ),
               ],

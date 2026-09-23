@@ -42,4 +42,8 @@ abstract final class AppColors {
   static const statusNeutral = Color(0xFF757575); // grey 600
 
   static const error = statusFull;
+
+  /// The "saved"/favorite heart icon color, used on both the student
+  /// Property Details screen and the Saved Properties list.
+  static const favorite = Color(0xFFE53935);
 }

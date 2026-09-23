@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../core/models/models.dart';
 import '../../../core/providers/repository_providers.dart';
 import '../../../core/services/room_request_service.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../auth/providers/auth_notifier.dart';
 import '../room_requests/room_request_providers.dart';
 import '../visit_requests/request_visit_sheet.dart';
@@ -87,7 +88,7 @@ class PropertyDetailsScreen extends ConsumerWidget {
                   IconButton(
                     key: const Key('save_property_button'),
                     icon: Icon(data.isSaved ? Icons.favorite : Icons.favorite_border),
-                    color: data.isSaved ? Colors.redAccent : null,
+                    color: data.isSaved ? AppColors.favorite : null,
                     onPressed: () => _toggleSave(ref, data.isSaved),
                   ),
                 ],

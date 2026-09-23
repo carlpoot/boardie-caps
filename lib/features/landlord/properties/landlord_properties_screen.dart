@@ -3,18 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/models/models.dart';
 import '../../../core/routing/app_router.dart';
+import '../../../core/theme/status_display.dart';
 import 'landlord_properties_providers.dart';
 
 class LandlordPropertiesScreen extends ConsumerWidget {
   const LandlordPropertiesScreen({super.key});
-
-  String _statusLabel(VerificationStatus status) => switch (status) {
-        VerificationStatus.pending => 'Pending',
-        VerificationStatus.verified => 'Verified',
-        VerificationStatus.rejected => 'Rejected',
-      };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -43,7 +37,7 @@ class LandlordPropertiesScreen extends ConsumerWidget {
                   subtitle: Text(
                     '${property.address}\n'
                     'From ${priceFormat.format(property.minPrice)}/mo · '
-                    '${_statusLabel(property.verificationStatus)}',
+                    '${property.verificationStatus.label}',
                   ),
                   isThreeLine: true,
                   onTap: () =>

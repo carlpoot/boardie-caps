@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 
 import '../../../core/models/models.dart';
 import '../../../core/services/room_availability_service.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../core/theme/status_display.dart';
 
 class RoomTile extends StatelessWidget {
   const RoomTile({
@@ -16,25 +18,11 @@ class RoomTile extends StatelessWidget {
   final RoomAvailability availability;
   final VoidCallback onRequestRoom;
 
-  static const _statusLabels = {
-    RoomAvailabilityStatus.available: 'Available',
-    RoomAvailabilityStatus.limited: 'Limited',
-    RoomAvailabilityStatus.full: 'Full',
-    RoomAvailabilityStatus.reserved: 'Reserved',
-  };
-
-  static const _statusColors = {
-    RoomAvailabilityStatus.available: Colors.green,
-    RoomAvailabilityStatus.limited: Colors.orange,
-    RoomAvailabilityStatus.full: Colors.red,
-    RoomAvailabilityStatus.reserved: Colors.blueGrey,
-  };
-
   @override
   Widget build(BuildContext context) {
     final priceFormat =
         NumberFormat.currency(locale: 'en_PH', symbol: '₱', decimalDigits: 0);
-    final color = _statusColors[availability.status]!;
+    final color = availability.status.color;
     final canRequest = availability.availableSlots > 0 &&
         availability.status != RoomAvailabilityStatus.reserved;
 
@@ -61,14 +49,10 @@ class RoomTile extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      '${_statusLabels[availability.status]} · '
+                      '${availability.status.label} · '
                       '${availability.availableSlots} slot'
                       '${availability.availableSlots == 1 ? '' : 's'}',
-                      style: TextStyle(
-                        color: color,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
+                      style: AppTypography.statusBadge.copyWith(color: color),
                     ),
                   ),
                 ],

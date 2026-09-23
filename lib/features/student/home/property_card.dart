@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_typography.dart';
 import 'property_browse_item.dart';
 
 class PropertyCard extends StatelessWidget {
@@ -112,7 +114,7 @@ class PropertyCard extends StatelessWidget {
                           itemBuilder: (context, index) {
                             final name = item.amenityNames.take(3).toList()[index];
                             return Chip(
-                              label: Text(name, style: const TextStyle(fontSize: 11)),
+                              label: Text(name, style: AppTypography.caption),
                               visualDensity: VisualDensity.compact,
                               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               padding: EdgeInsets.zero,
@@ -145,7 +147,7 @@ class _SlotsBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isFull = availableSlots <= 0;
-    final color = isFull ? Colors.red : Colors.green;
+    final color = isFull ? AppColors.statusFull : AppColors.statusAvailable;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
@@ -154,7 +156,7 @@ class _SlotsBadge extends StatelessWidget {
       ),
       child: Text(
         isFull ? 'Full' : '$availableSlots slot${availableSlots == 1 ? '' : 's'}',
-        style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold),
+        style: AppTypography.statusBadge.copyWith(color: color, fontSize: 11),
       ),
     );
   }
