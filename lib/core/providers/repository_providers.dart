@@ -14,6 +14,14 @@ final userRepositoryProvider = Provider<UserRepository>(
   (ref) => MockUserRepository(),
 );
 
+final authRepositoryProvider = Provider<AuthRepository>(
+  (ref) => MockAuthRepository(
+    userRepository: ref.watch(userRepositoryProvider),
+    studentProfileRepository: ref.watch(studentProfileRepositoryProvider),
+    landlordProfileRepository: ref.watch(landlordProfileRepositoryProvider),
+  ),
+);
+
 final landlordProfileRepositoryProvider = Provider<LandlordProfileRepository>(
   (ref) => MockLandlordProfileRepository(),
 );

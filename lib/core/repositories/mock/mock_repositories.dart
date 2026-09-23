@@ -1,4 +1,5 @@
 export 'mock_amenity_repository.dart';
+export 'mock_auth_repository.dart';
 export 'mock_campus_repository.dart';
 export 'mock_landlord_profile_repository.dart';
 export 'mock_property_image_repository.dart';

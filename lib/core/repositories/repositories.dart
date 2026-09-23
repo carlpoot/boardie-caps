@@ -1,4 +1,5 @@
 export 'amenity_repository.dart';
+export 'auth_repository.dart';
 export 'campus_repository.dart';
 export 'crud_repository.dart';
 export 'landlord_profile_repository.dart';
