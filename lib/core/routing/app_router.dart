@@ -10,6 +10,7 @@ import '../../features/auth/screens/onboarding_screen.dart';
 import '../../features/auth/screens/signup_screen.dart';
 import '../../features/landlord/landlord_home_screen.dart';
 import '../../features/shared/guest_home_screen.dart';
+import '../../features/student/property_details/property_details_screen.dart';
 import '../../features/student/student_home_screen.dart';
 import '../models/models.dart';
 
@@ -35,11 +36,19 @@ abstract final class AppRoutes {
   // TODO(phase-4): '/guest/sos'           -- Access SOS Hotlines
 
   static const studentHome = '/student/home';
-  // TODO(phase-3): '/student/visits'        -- Request Visit / Manage Visit Schedule
-  // TODO(phase-3): '/student/room-requests' -- Request Room / Temporary Hold / Confirm Room Request
-  // TODO(phase-3): '/student/saved'         -- Save Property / Compare Properties
-  // TODO(phase-3): '/student/campus-anchor' -- Set Campus Anchor
-  // TODO(phase-3): '/student/profile'       -- Manage Profile
+
+  /// The pattern registered with go_router.
+  static const studentPropertyDetailsPattern = '/student/property/:id';
+
+  /// Builds a concrete path to a given property's details.
+  static String studentPropertyDetails(String propertyId) =>
+      '/student/property/$propertyId';
+
+  // TODO(phase-3b): '/student/visits'        -- Request Visit / Manage Visit Schedule
+  // TODO(phase-3b): '/student/room-requests' -- Request Room / Temporary Hold / Confirm Room Request
+  // TODO(phase-3b): '/student/saved'         -- View Saved Properties / Compare Properties
+  // TODO(phase-3b): '/student/campus-anchor' -- Set Campus Anchor
+  // TODO(phase-3b): '/student/profile'       -- Manage Profile
 
   static const landlordHome = '/landlord/home';
   // TODO(phase-3): '/landlord/properties'    -- Manage Property Listings / Update Rooms and Occupancy
@@ -161,6 +170,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.studentHome,
         builder: (context, state) => const StudentHomeScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.studentPropertyDetailsPattern,
+        builder: (context, state) => PropertyDetailsScreen(
+          propertyId: state.pathParameters['id']!,
+        ),
       ),
       GoRoute(
         path: AppRoutes.landlordHome,

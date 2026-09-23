@@ -15,23 +15,25 @@ lib/
     repositories/       # abstract repository interfaces (CRUD + entity-specific queries)
     repositories/mock/  # in-memory implementations, seeded with sample data
     providers/          # Riverpod providers wiring interfaces -> mock impls
-    services/           # (empty — reserved for later phases)
+    services/           # RoomAvailabilityService, distance_utils
     routing/            # go_router config + the role-based redirect guard
     theme/              # (empty — reserved for later phases)
   features/
-    auth/                # login, onboarding, sign-up, AuthState/AuthNotifier
-    student/              # student_home placeholder
-    landlord/             # landlord_home placeholder
-    admin/                # admin_home placeholder
-    sos/                  # (empty — reserved for later phases)
-    map/                  # (empty — reserved for later phases)
-    shared/               # guest_home placeholder
+    auth/                 # login, onboarding, sign-up, AuthState/AuthNotifier
+    student/               # bottom-nav shell: home (browse) + map tabs, property details
+    landlord/              # landlord_home placeholder
+    admin/                 # admin_home placeholder
+    sos/                   # (empty — reserved for later phases)
+    map/                   # (empty — reserved for later phases)
+    shared/                # guest_home placeholder
 ```
 
-Phase 1 was models and the data layer only. Phase 2 (this one) adds
-authentication against a mock `AuthRepository` and role-based routing; the
-actual student/landlord/admin/guest feature screens are still placeholders
-that just say "Logged in as `<role>`" — those come in a later phase.
+Phase 1 was models and the data layer only. Phase 2 added authentication
+against a mock `AuthRepository` and role-based routing. Phase 3a (this one)
+builds the first half of the student-facing screens: browsing and property
+details. Visit requests, room requests/holds, saved-properties list,
+compare-properties, and profile management are Phase 3b. Landlord/Admin
+screens are still "Logged in as `<role>`" placeholders.
 
 ## Data model spec
 
@@ -124,6 +126,47 @@ Manage Property Listings, Manage Users, etc.) is reserved as a commented
 route stub in `AppRoutes` — the path prefixes those stubs live under are
 already what the guard gates by role, so later phases can add real
 `GoRoute`s under them without touching the redirect logic itself.
+
+## Student browsing and property details (Phase 3a)
+
+[`RoomAvailabilityService`](lib/core/services/room_availability_service.dart)
+is the one piece of shared, tested business logic this phase adds: given a
+`Room`, it returns both how many slots are actually open right now
+(`capacity - current_occupancy - active RoomRequest holds`) and which
+map-legend status that implies (Available / Limited / Full / Reserved — see
+`RoomAvailability`). It's a `Provider` in
+[service_providers.dart](lib/core/providers/service_providers.dart), kept
+separate from `repository_providers.dart` since a service composes
+repositories rather than backing one entity. Phase 3b (room requests),
+Phase 4 (landlord room management), and the Phase 8 map all need this exact
+calculation, which is why it isn't buried inside a screen.
+
+- **A pending or approved hold counts the same as an occupant** for
+  Full/Limited purposes — it's occupying a slot even though it isn't a firm
+  booking yet. Only a **confirmed** hold produces the distinct `reserved`
+  status, taking priority over the occupancy-based status.
+- **Incidental fix while building this:** two seeded `RoomRequests.held_until`
+  values were anchored to the fixed historical seed date rather than
+  `DateTime.now()`, so those holds had already silently "expired" by
+  wall-clock time. Fixed in
+  [mock_seed_data.dart](lib/core/repositories/mock/mock_seed_data.dart) so
+  the demo data stays meaningful no matter when the app is actually run.
+
+`lib/features/student/`:
+- `home/` — search bar, filter chips (All / Near BU / one per distinct
+  `Rooms.room_type`), and a horizontally-scrollable `PropertyCard` list.
+  Only `verified` properties are shown. All of it is fetched once via
+  `studentBrowsePropertiesProvider` and filtered client-side.
+- `map/` — `MapView`: a distance-sorted list/grid placeholder. It's the only
+  file that needs to change when a real `GoogleMap` widget replaces it.
+- `property_details/` — photo gallery, amenities, address, and every
+  `Room` with a live availability badge. The Save heart icon is **real**
+  (creates/deletes a `SavedProperties` row); "Request Visit" and "Request
+  Room" are stubbed with a snackbar — that logic is Phase 3b.
+
+The "Near BU" distance filter and the map placeholder's distance text both
+use [`haversineDistanceKm`](lib/core/services/distance_utils.dart) against
+the student's own `StudentProfiles.campus_id`, not a hardcoded campus.
 
 ## Getting Started
 

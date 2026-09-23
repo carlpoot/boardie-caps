@@ -520,7 +520,10 @@ class MockSeedData {
       propertyId: 'property-006',
       landlordId: 'landlord-001',
       status: RoomRequestStatus.approved,
-      heldUntil: _seedNow.add(const Duration(days: 2)),
+      // Anchored to real wall-clock time (not _seedNow) so this hold still
+      // reads as "active" no matter how long after the seed date the app
+      // is actually run -- see RoomRequestRepository.getActiveHoldsForRoom.
+      heldUntil: DateTime.now().add(const Duration(days: 2)),
       approvedAt: _seedNow.subtract(const Duration(days: 1)),
       confirmedAt: null,
       createdAt: _seedNow.subtract(const Duration(days: 2)),
@@ -532,7 +535,8 @@ class MockSeedData {
       propertyId: 'property-001',
       landlordId: 'landlord-001',
       status: RoomRequestStatus.pending,
-      heldUntil: _seedNow.add(const Duration(days: 1)),
+      // See the note on request-002 above.
+      heldUntil: DateTime.now().add(const Duration(days: 1)),
       approvedAt: null,
       confirmedAt: null,
       createdAt: _seedNow.subtract(const Duration(hours: 6)),

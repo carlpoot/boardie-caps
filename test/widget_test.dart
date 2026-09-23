@@ -49,7 +49,7 @@ void main() {
       (WidgetTester tester) async {
     await _skipOnboarding(tester);
     await _login(tester, 'anna.student@boardie.io');
-    expect(find.text('Logged in as student'), findsOneWidget);
+    expect(find.byKey(const Key('student_home_shell')), findsOneWidget);
   });
 
   testWidgets('logging in with seeded landlord credentials reaches landlord home',
@@ -82,14 +82,14 @@ void main() {
     (WidgetTester tester) async {
       await _skipOnboarding(tester);
       await _login(tester, 'anna.student@boardie.io');
-      expect(find.text('Logged in as student'), findsOneWidget);
+      expect(find.byKey(const Key('student_home_shell')), findsOneWidget);
 
       final context = tester.element(find.byType(Scaffold).first);
       GoRouter.of(context).go('/admin/home');
       await tester.pumpAndSettle();
 
       expect(find.text('Logged in as admin'), findsNothing);
-      expect(find.text('Logged in as student'), findsOneWidget);
+      expect(find.byKey(const Key('student_home_shell')), findsOneWidget);
     },
   );
 
@@ -104,7 +104,7 @@ void main() {
     GoRouter.of(context).go('/student/home');
     await tester.pumpAndSettle();
 
-    expect(find.text('Logged in as student'), findsNothing);
+    expect(find.byKey(const Key('student_home_shell')), findsNothing);
     expect(find.text('Browsing as Guest'), findsOneWidget);
   });
 
@@ -143,7 +143,7 @@ void main() {
     await tester.tap(find.byKey(const Key('signup_submit_button')));
     await tester.pumpAndSettle();
 
-    expect(find.text('Logged in as student'), findsOneWidget);
+    expect(find.byKey(const Key('student_home_shell')), findsOneWidget);
 
     await tester.tap(find.widgetWithIcon(IconButton, Icons.logout));
     await tester.pumpAndSettle();
