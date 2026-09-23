@@ -6,8 +6,9 @@ import 'app_colors.dart';
 /// The ONE place every status enum maps to a display color and label.
 ///
 /// Every screen that shows a `RoomAvailabilityStatus`, `RoomRequestStatus`,
-/// `VisitRequestStatus`, or `VerificationStatus` badge must go through
-/// these extensions rather than declaring its own color/label map --
+/// `VisitRequestStatus`, `VerificationStatus`, `UserStatus`, or
+/// `ReportedListingReviewStatus` badge must go through these extensions
+/// rather than declaring its own color/label map --
 /// before this file existed, the room-availability map in particular was
 /// duplicated verbatim between the student and landlord sides.
 ///
@@ -90,5 +91,34 @@ extension VerificationStatusDisplay on VerificationStatus {
         VerificationStatus.pending => 'Pending',
         VerificationStatus.verified => 'Verified',
         VerificationStatus.rejected => 'Rejected',
+      };
+}
+
+extension UserStatusDisplay on UserStatus {
+  Color get color => switch (this) {
+        UserStatus.active => AppColors.statusAvailable,
+        UserStatus.suspended => AppColors.statusFull,
+      };
+
+  String get label => switch (this) {
+        UserStatus.active => 'Active',
+        UserStatus.suspended => 'Suspended',
+      };
+}
+
+/// `reviewed` reads as a positive/final outcome (the admin looked at it and
+/// handled it) while `dismissed` reads as terminal/inactive (closed, no
+/// action taken) -- the same grey used for `expired`/`cancelled` elsewhere.
+extension ReportedListingReviewStatusDisplay on ReportedListingReviewStatus {
+  Color get color => switch (this) {
+        ReportedListingReviewStatus.pending => AppColors.statusPending,
+        ReportedListingReviewStatus.reviewed => AppColors.statusAvailable,
+        ReportedListingReviewStatus.dismissed => AppColors.statusNeutral,
+      };
+
+  String get label => switch (this) {
+        ReportedListingReviewStatus.pending => 'Pending',
+        ReportedListingReviewStatus.reviewed => 'Reviewed',
+        ReportedListingReviewStatus.dismissed => 'Dismissed',
       };
 }

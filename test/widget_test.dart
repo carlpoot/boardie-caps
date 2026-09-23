@@ -42,7 +42,7 @@ void main() {
       (WidgetTester tester) async {
     await _skipOnboarding(tester);
     await _login(tester, 'grace.admin@boardie.io');
-    expect(find.text('Logged in as admin'), findsOneWidget);
+    expect(find.byKey(const Key('admin_home_shell')), findsOneWidget);
   });
 
   testWidgets('logging in with seeded student credentials reaches student home',
@@ -88,7 +88,7 @@ void main() {
       GoRouter.of(context).go('/admin/home');
       await tester.pumpAndSettle();
 
-      expect(find.text('Logged in as admin'), findsNothing);
+      expect(find.byKey(const Key('admin_home_shell')), findsNothing);
       expect(find.byKey(const Key('student_home_shell')), findsOneWidget);
     },
   );

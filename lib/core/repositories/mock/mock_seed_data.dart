@@ -653,6 +653,15 @@ class MockSeedData {
       reason: 'Property appears to already be closed/demolished.',
       reviewStatus: ReportedListingReviewStatus.pending,
     ),
+    // Against property-003, which is still verification_status = pending --
+    // exercises the Verify Listings screen's "pending report" warning path.
+    const ReportedListing(
+      reportIssueId: 'reportissue-005',
+      propertyId: 'property-003',
+      reportedBy: 'user-007',
+      reason: 'Landlord could not be reached to confirm room availability.',
+      reviewStatus: ReportedListingReviewStatus.pending,
+    ),
   ];
 
   // ---------------------------------------------------------------------

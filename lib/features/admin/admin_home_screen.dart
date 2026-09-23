@@ -3,21 +3,40 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../auth/providers/auth_notifier.dart';
+import 'reported_listings/admin_reported_listings_screen.dart';
+import 'reports/admin_reports_screen.dart';
+import 'users/admin_users_screen.dart';
+import 'verification/admin_verification_screen.dart';
 
 Future<void> _logout(BuildContext context, WidgetRef ref) async {
   await ref.read(authNotifierProvider.notifier).logout();
   if (context.mounted) context.go('/login');
 }
 
-/// Placeholder landing screen for the administrator role. The real user
-/// management / verification / reported-listings / reporting screens
-/// arrive in a later phase.
-class AdminHomeScreen extends ConsumerWidget {
+/// Bottom-nav shell for the admin role: Users, Verify Listings, Reported
+/// Listings, and Reports tabs -- matching the Administrator column of the
+/// Use Case diagram.
+class AdminHomeScreen extends ConsumerStatefulWidget {
   const AdminHomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AdminHomeScreen> createState() => _AdminHomeScreenState();
+}
+
+class _AdminHomeScreenState extends ConsumerState<AdminHomeScreen> {
+  int _tabIndex = 0;
+
+  static const _tabs = [
+    AdminUsersScreen(),
+    AdminVerificationScreen(),
+    AdminReportedListingsScreen(),
+    AdminReportsScreen(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
+      key: const Key('admin_home_shell'),
       appBar: AppBar(
         title: const Text('Administrator'),
         actions: [
@@ -28,7 +47,33 @@ class AdminHomeScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: const Center(child: Text('Logged in as admin')),
+      body: IndexedStack(index: _tabIndex, children: _tabs),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _tabIndex,
+        onDestinationSelected: (index) => setState(() => _tabIndex = index),
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.people_outline),
+            selectedIcon: Icon(Icons.people),
+            label: 'Users',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.verified_outlined),
+            selectedIcon: Icon(Icons.verified),
+            label: 'Verify',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.flag_outlined),
+            selectedIcon: Icon(Icons.flag),
+            label: 'Reported',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.summarize_outlined),
+            selectedIcon: Icon(Icons.summarize),
+            label: 'Reports',
+          ),
+        ],
+      ),
     );
   }
 }

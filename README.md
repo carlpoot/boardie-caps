@@ -17,7 +17,7 @@ lib/
     providers/          # Riverpod providers wiring interfaces -> mock impls
     services/           # RoomAvailabilityService, distance_utils
     routing/            # go_router config + the role-based redirect guard
-    theme/              # (empty — reserved for later phases)
+    theme/              # AppColors, AppTypography, shared status-display extensions, AppTheme
   features/
     auth/                 # login, onboarding, sign-up, AuthState/AuthNotifier
     student/               # bottom-nav shell: home, map, reservations, profile tabs
@@ -35,7 +35,11 @@ lib/
       visit_requests/        # Accept/Reschedule/Decline
       room_requests/         # Approve/Decline (never Confirm)
       reports/               # PDF generation (pdf + printing packages)
-    admin/                 # admin_home placeholder
+    admin/                 # bottom-nav shell: users, verify, reported, reports tabs
+      users/                  # Manage Users: role filter, status toggle
+      verification/           # Verify Listings: Verify/Reject a pending Property
+      reported_listings/      # Review Reported Listings: Reviewed/Dismissed/Reject Property
+      reports/                # PDF generation, system-wide (not landlord-scoped)
     sos/                   # (empty — reserved for later phases)
     map/                   # (empty — reserved for later phases)
     shared/                # guest_home placeholder
@@ -43,8 +47,10 @@ lib/
 
 Phase 1 was models and the data layer only. Phase 2 added authentication
 against a mock `AuthRepository` and role-based routing. Phase 3a/3b built
-every student-facing screen. Phase 4 (this one) builds every landlord-facing
-screen. Admin screens are still a "Logged in as admin" placeholder.
+every student-facing screen. Phase 4 built every landlord-facing screen.
+Phase 5 (this one) builds every admin-facing screen. A design-system
+retrofit ran between Phase 4 and Phase 5 -- see
+[Design system](#design-system-theme-retrofit) below.
 
 ## Data model spec
 
@@ -287,6 +293,118 @@ service rather than being re-implemented per screen.
     peso sign (₱, U+20B1), so PDF output uses a literal "PHP" prefix instead
     -- the UI itself still shows ₱ everywhere else, since Flutter's own text
     rendering has no such limitation.
+
+## Design system (theme retrofit)
+
+Before Phase 5, every screen styled itself independently -- ad hoc
+`Colors.*`/`TextStyle(...)` literals, and the room-availability
+status→color/label map duplicated verbatim between the student and
+landlord sides. `lib/core/theme/` now holds the one shared design system,
+and every screen (Phases 2-5) was retrofitted onto it -- presentation
+only, no layout or business-logic changes:
+
+- [`app_colors.dart`](lib/core/theme/app_colors.dart) -- the base palette
+  (blue primary, per the wireframes) plus semantic status colors shared
+  across **every** status family in the app: green (positive/final),
+  orange (pending/awaiting), red (negative), teal
+  (affirmative-but-not-final), grey (terminal/inactive). No family invents
+  its own hues.
+- [`status_display.dart`](lib/core/theme/status_display.dart) -- the ONE
+  place every status enum maps to a color and label, as Dart extensions:
+  `RoomAvailabilityStatus`, `RoomRequestStatus`, `VisitRequestStatus`,
+  `VerificationStatus` (Phase 4 retrofit), plus `UserStatus` and
+  `ReportedListingReviewStatus` (added in Phase 5, same vocabulary --
+  active/reviewed read as green, suspended/full read as red, dismissed
+  reads as the same neutral grey as expired/cancelled).
+- [`app_typography.dart`](lib/core/theme/app_typography.dart) -- a text
+  style scale (headline/title/body/label/caption), one platform font
+  family throughout.
+- [`app_theme.dart`](lib/core/theme/app_theme.dart) -- the actual
+  `ThemeData` (light mode only), wired into `main.dart` in place of the
+  original bare `ColorScheme.fromSeed`.
+
+## Admin screens (Phase 5)
+
+Every admin screen lives under `lib/features/admin/`, reusing Phase 1's
+repositories and the design system above -- no repository changes were
+needed for this phase either.
+
+- **Manage Users** (`users/`): every `Users` row, filterable by role, each
+  shown with its linked `LandlordProfiles`/`StudentProfiles` record inline
+  (a user has at most one, never both). The only action is toggling
+  `Users.status` between `active` and `suspended`.
+- **Verify Listings** (`verification/`): every `Properties` row with
+  `verification_status = pending`, system-wide, with its photos and its
+  owning landlord's own `LandlordProfiles.verification_status` shown for
+  context. Verify/Reject write only `Properties.verification_status` --
+  never `LandlordProfiles.verification_status`, which is a separate field
+  on a separate entity (identity/account verification vs. per-listing
+  verification) that this screen never touches.
+- **Review Reported Listings** (`reported_listings/`): every
+  `ReportedListings` row with `review_status = pending`, system-wide, with
+  the reported property's name and the reporting user's name resolved for
+  display. Actions set `review_status` to `reviewed` or `dismissed`.
+- **Generate Admin Reports** (`reports/`): three report types --
+  `users`, `listing_verification`, `reported_listings` -- built with the
+  same `pdf`/`printing` pattern as the landlord reports (including the
+  same fire-before-any-`await` fix for the browser print-dialog timing
+  issue), but system-wide rather than scoped to a `landlord_id`.
+
+  **Flagging three choices back, per the task's own ask:**
+  - **A pending `ReportedListings` row against a property is a warning,
+    not a hard block, on verifying it.** Verifying opens a confirm dialog
+    that lists any unreviewed reports and their reasons when they exist,
+    but the admin can still proceed. Reasoning: an unreviewed report is
+    unverified on the admin's side too -- it could be mistaken, retaliatory,
+    or simply outdated by the time verification happens. A hard block would
+    let anyone freeze a legitimate listing indefinitely just by filing a
+    report, with no recourse until that specific report is triaged. A
+    warning keeps a human in the loop with the actual reason surfaced,
+    without giving an unvetted report unilateral veto power.
+  - **Marking a `ReportedListings` row `reviewed` or `dismissed` never
+    cascades into `Properties.verification_status`.** The two fields are
+    changed by two entirely separate, explicit actions: reviewing/
+    dismissing a report only ever writes `review_status`, and rejecting the
+    reported property is a distinct "Reject Property" button on the same
+    Reported Listings card (as well as being available for any
+    still-`pending` property from the Verify Listings screen). Reasoning:
+    auto-rejecting a listing as a side effect of simply acknowledging a
+    report would be a surprising, hard-to-reverse action hiding behind what
+    reads as routine triage -- and a report can be filed against a property
+    in *any* verification state (the seed data has one against an
+    already-`rejected` property), so a cascade tied only to the `pending`
+    Verify Listings queue couldn't handle every case anyway. Because
+    `Properties.verification_status` isn't restricted to `pending`
+    properties only, "Reject Property" doubles as the one explicit path to
+    revoke an already-verified listing's status in response to a
+    substantiated report -- there's no separate "un-verify" flow.
+  - **Admin reports cover the whole platform, with no `created_by`
+    scoping filter on the data itself** (only on which rows show up in
+    "Generated Reports", same as the landlord side) -- e.g.
+    `listing_verification` includes every landlord's properties, not just
+    ones this admin has personally verified. This matches the task's own
+    description of these reports as system-wide oversight tools, distinct
+    in kind from the landlord reports.
+
+    **A real testing gap surfaced while verifying this claim, worth noting
+    for both report features:** `Printing.layoutPdf`'s `onLayout` callback
+    -- the only caller of the private row-gathering/PDF-building logic in
+    both `_buildPdfBytes` functions (admin and landlord) -- never fires
+    under `flutter_test`, since there's no platform channel and the call
+    fails before it ever renders a page. Confirmed by temporarily
+    instrumenting it with a print statement and observing it never printed
+    during a "generate report" widget test. That means the existing
+    report-generation widget tests (both sides) only ever proved a
+    `Reports` row gets created -- never that the underlying data-gathering
+    logic queries what it claims to. [`gatherListingVerificationRows`
+    ](lib/features/admin/reports/admin_reports_providers.dart) was pulled
+    out of `_buildPdfBytes` as its own top-level function specifically to
+    close that gap for the system-wide claim above: a test seeds properties
+    under two different landlords and calls it directly (via a captured
+    `WidgetRef`, bypassing `Printing.layoutPdf` entirely), asserting the
+    returned rows span both `landlord_id`s. The landlord side's equivalent
+    functions remain inline and not similarly covered -- flagging that as
+    a pre-existing gap this phase didn't introduce, not one it fully closed.
 
 ## Getting Started
 

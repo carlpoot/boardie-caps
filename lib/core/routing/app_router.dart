@@ -85,11 +85,10 @@ abstract final class AppRoutes {
 
   // TODO(phase-3): '/landlord/profile' -- Manage Profile
 
+  // Manage Users, Verify Listings, Review Reported Listings, and Generate
+  // Admin Reports each live inside their own bottom-nav tab -- no
+  // dedicated route needed for the tabs themselves.
   static const adminHome = '/admin/home';
-  // TODO(phase-3): '/admin/users'        -- Manage Users
-  // TODO(phase-3): '/admin/verification' -- Verify Listings
-  // TODO(phase-3): '/admin/reported'     -- Review Reported Listings
-  // TODO(phase-3): '/admin/reports'      -- Generate Admin Reports
 }
 
 /// The default landing route for a role, used both by the redirect guard
