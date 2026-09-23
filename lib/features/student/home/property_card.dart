@@ -4,10 +4,21 @@ import 'package:intl/intl.dart';
 import 'property_browse_item.dart';
 
 class PropertyCard extends StatelessWidget {
-  const PropertyCard({super.key, required this.item, required this.onTap});
+  const PropertyCard({
+    super.key,
+    required this.item,
+    required this.onTap,
+    this.selectionMode = false,
+    this.selected = false,
+  });
 
   final PropertyBrowseItem item;
   final VoidCallback onTap;
+
+  /// When true, shows a selection checkmark overlay instead of behaving as
+  /// a plain "open details" card -- used by the Compare Properties flow.
+  final bool selectionMode;
+  final bool selected;
 
   @override
   Widget build(BuildContext context) {
@@ -26,21 +37,40 @@ class PropertyCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              AspectRatio(
-                aspectRatio: 16 / 9,
-                child: item.coverImageUrl == null
-                    ? Container(
-                        color: placeholderColor,
-                        child: const Icon(Icons.home_outlined, size: 40),
-                      )
-                    : Image.network(
-                        item.coverImageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => Container(
-                          color: placeholderColor,
-                          child: const Icon(Icons.broken_image_outlined),
+              Stack(
+                children: [
+                  AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: item.coverImageUrl == null
+                        ? Container(
+                            color: placeholderColor,
+                            child: const Icon(Icons.home_outlined, size: 40),
+                          )
+                        : Image.network(
+                            item.coverImageUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => Container(
+                              color: placeholderColor,
+                              child: const Icon(Icons.broken_image_outlined),
+                            ),
+                          ),
+                  ),
+                  if (selectionMode)
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: CircleAvatar(
+                        radius: 12,
+                        backgroundColor:
+                            selected ? Theme.of(context).colorScheme.primary : Colors.white70,
+                        child: Icon(
+                          selected ? Icons.check : Icons.circle_outlined,
+                          size: 16,
+                          color: selected ? Colors.white : Colors.black54,
                         ),
                       ),
+                    ),
+                ],
               ),
               Padding(
                 padding: const EdgeInsets.all(12),

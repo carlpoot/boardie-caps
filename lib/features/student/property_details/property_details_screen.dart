@@ -4,7 +4,10 @@ import 'package:intl/intl.dart';
 
 import '../../../core/models/models.dart';
 import '../../../core/providers/repository_providers.dart';
+import '../../../core/services/room_request_service.dart';
 import '../../auth/providers/auth_notifier.dart';
+import '../room_requests/room_request_providers.dart';
+import '../visit_requests/request_visit_sheet.dart';
 import 'property_details_providers.dart';
 import 'room_tile.dart';
 
@@ -34,10 +37,27 @@ class PropertyDetailsScreen extends ConsumerWidget {
     ref.invalidate(propertyDetailsProvider(propertyId));
   }
 
-  void _showComingSoon(BuildContext context, String feature) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text('$feature are coming in a later phase.')));
+  Future<void> _requestRoom(
+    BuildContext context,
+    WidgetRef ref,
+    Property property,
+    Room room,
+  ) async {
+    try {
+      await requestRoomHold(ref, room: room, landlordId: property.landlordId);
+      ref.invalidate(propertyDetailsProvider(propertyId));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(const SnackBar(content: Text('Room request sent -- held for 24 hours.')));
+      }
+    } on RoomRequestException catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(e.message)));
+      }
+    }
   }
 
   @override
@@ -126,7 +146,7 @@ class PropertyDetailsScreen extends ConsumerWidget {
                           key: const Key('request_visit_button'),
                           icon: const Icon(Icons.event_available_outlined),
                           label: const Text('Request Visit'),
-                          onPressed: () => _showComingSoon(context, 'Visit requests'),
+                          onPressed: () => showRequestVisitSheet(context, ref, property),
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -139,7 +159,7 @@ class PropertyDetailsScreen extends ConsumerWidget {
                           child: RoomTile(
                             room: room,
                             availability: availability,
-                            onRequestRoom: () => _showComingSoon(context, 'Room requests'),
+                            onRequestRoom: () => _requestRoom(context, ref, property, room),
                           ),
                         );
                       }),

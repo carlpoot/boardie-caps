@@ -10,6 +10,9 @@ import '../../features/auth/screens/onboarding_screen.dart';
 import '../../features/auth/screens/signup_screen.dart';
 import '../../features/landlord/landlord_home_screen.dart';
 import '../../features/shared/guest_home_screen.dart';
+import '../../features/student/compare_properties/compare_properties_screen.dart';
+import '../../features/student/profile/campus_anchor_screen.dart';
+import '../../features/student/profile/saved_properties_screen.dart';
 import '../../features/student/property_details/property_details_screen.dart';
 import '../../features/student/student_home_screen.dart';
 import '../models/models.dart';
@@ -44,11 +47,15 @@ abstract final class AppRoutes {
   static String studentPropertyDetails(String propertyId) =>
       '/student/property/$propertyId';
 
-  // TODO(phase-3b): '/student/visits'        -- Request Visit / Manage Visit Schedule
-  // TODO(phase-3b): '/student/room-requests' -- Request Room / Temporary Hold / Confirm Room Request
-  // TODO(phase-3b): '/student/saved'         -- View Saved Properties / Compare Properties
-  // TODO(phase-3b): '/student/campus-anchor' -- Set Campus Anchor
-  // TODO(phase-3b): '/student/profile'       -- Manage Profile
+  // Request Visit lives in a bottom sheet from Property Details, not a
+  // route; Manage Visit Schedule and Room Holds both live inside the
+  // Reservations tab; Manage Profile lives inside the Profile tab -- none
+  // of those needed a new route, just more bottom-nav destinations on the
+  // existing '/student/home' shell.
+
+  static const studentSaved = '/student/saved';
+  static const studentCampusAnchor = '/student/campus-anchor';
+  static const studentCompare = '/student/compare';
 
   static const landlordHome = '/landlord/home';
   // TODO(phase-3): '/landlord/properties'    -- Manage Property Listings / Update Rooms and Occupancy
@@ -175,6 +182,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.studentPropertyDetailsPattern,
         builder: (context, state) => PropertyDetailsScreen(
           propertyId: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.studentSaved,
+        builder: (context, state) => const SavedPropertiesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.studentCampusAnchor,
+        builder: (context, state) => const CampusAnchorScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.studentCompare,
+        builder: (context, state) => ComparePropertiesScreen(
+          propertyIds: state.extra! as List<String>,
         ),
       ),
       GoRoute(

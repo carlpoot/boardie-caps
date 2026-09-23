@@ -20,7 +20,15 @@ lib/
     theme/              # (empty — reserved for later phases)
   features/
     auth/                 # login, onboarding, sign-up, AuthState/AuthNotifier
-    student/               # bottom-nav shell: home (browse) + map tabs, property details
+    student/               # bottom-nav shell: home, map, reservations, profile tabs
+      home/                  # browse: search, filters, PropertyCard list
+      map/                   # MapView placeholder
+      property_details/      # gallery, amenities, rooms, save, request actions
+      visit_requests/        # Request Visit sheet + VisitRequestCard
+      room_requests/         # Request Room wiring + RoomRequestCard
+      reservations/          # Room Holds / Visit Requests tabs
+      profile/               # personal info, saved list, campus anchor
+      compare_properties/    # selection state + side-by-side comparison
     landlord/              # landlord_home placeholder
     admin/                 # admin_home placeholder
     sos/                   # (empty — reserved for later phases)
@@ -29,10 +37,10 @@ lib/
 ```
 
 Phase 1 was models and the data layer only. Phase 2 added authentication
-against a mock `AuthRepository` and role-based routing. Phase 3a (this one)
-builds the first half of the student-facing screens: browsing and property
-details. Visit requests, room requests/holds, saved-properties list,
-compare-properties, and profile management are Phase 3b. Landlord/Admin
+against a mock `AuthRepository` and role-based routing. Phase 3a built the
+first half of the student-facing screens (browsing and property details).
+Phase 3b (this one) builds the second half: visit requests, room
+requests/holds, reservations, profile, and compare properties. Landlord/Admin
 screens are still "Logged in as `<role>`" placeholders.
 
 ## Data model spec
@@ -167,6 +175,50 @@ calculation, which is why it isn't buried inside a screen.
 The "Near BU" distance filter and the map placeholder's distance text both
 use [`haversineDistanceKm`](lib/core/services/distance_utils.dart) against
 the student's own `StudentProfiles.campus_id`, not a hardcoded campus.
+
+## Visit requests, room holds, reservations, profile, compare (Phase 3b)
+
+[`RoomRequestService`](lib/core/services/room_request_service.dart) holds
+every `RoomRequests` business rule as a standalone, tested service (see
+[room_request_service_test.dart](test/core/services/room_request_service_test.dart)) —
+the 4-active-holds cap, live expiry, and the confirm/auto-cancel rule. Kept
+out of widgets so Phase 4's landlord side can reuse the exact same logic.
+
+- **Live expiry is a read-time computation, not a write-back.** A hold's
+  `held_until` can pass with nothing ever setting `status = 'expired'` on
+  the row — there's no scheduled job in the mock phase to do that.
+  `RoomRequestService.effectiveStatus`/`isLiveExpired` treat it as expired
+  regardless of what's stored, and everything that cares (the 4-hold cap,
+  the Reservations "Expired" filter) goes through those helpers rather than
+  trusting `RoomRequest.status` directly. **Flagging the choice per the
+  task's own ask:** this mirrors how `RoomAvailabilityService` (Phase 3a)
+  already treats expiry — purely computed, never a side-effecting write —
+  and avoids turning a shared read method into a hidden mutation. When the
+  Firebase phase adds a scheduled Cloud Function to flip stale rows, that
+  function should own writing the field; this client logic wouldn't need
+  to change, since it already discounts a live-expired row either way.
+- **The 4-hold cap and the confirm/auto-cancel rule are enforced only in
+  `RoomRequestService`**, not duplicated as a UI-level check — the "Request
+  Room" button itself is still gated by `RoomAvailabilityService` (is this
+  *room* full?), which is a separate, complementary concern from "does this
+  *student* already have 4 holds?".
+- **Reservations' four filter tabs (Active/Confirmed/Expired/Cancelled)**
+  lump `pending`+`approved` into "Active", and fold `declined` into
+  "Cancelled" — the wireframe has no tab of its own for `declined`, and
+  both represent "this hold didn't go through". See `_HoldFilter` in
+  [room_holds_tab.dart](lib/features/student/reservations/room_holds_tab.dart).
+- **Set Campus Anchor** (no supporting wireframe prose) is a plain radio
+  picker over `Campuses`, writing to `StudentProfiles.campus_id`. Flagging
+  back per the task's note: a map-based pin-drop is an equally plausible
+  reading if a real map exists by the time this needs revisiting.
+- **Compare Properties** (also no supporting prose) is a working
+  interpretation: a "Compare" toggle on Browse (Home tab) and on the Saved
+  Properties list puts cards into a selection mode (capped at 3, shared
+  across both entry points via `compareSelectionProvider`), and a
+  side-by-side screen shows min price, amenities, distance from the
+  student's campus anchor, and live room availability per property.
+  Flagging back in case a different interaction (e.g. a persistent
+  multi-select from search results only) was intended instead.
 
 ## Getting Started
 

@@ -104,18 +104,6 @@ void main() {
     expect(find.byIcon(Icons.favorite_border), findsOneWidget);
   });
 
-  testWidgets('Request Visit and Request Room are stubbed with a snackbar',
-      (tester) async {
-    await _loginAsStudent(tester);
-    await tester.tap(find.text('Casa Bicolana Dormitory'));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byKey(const Key('request_visit_button')));
-    await tester.pump();
-
-    expect(find.text('Visit requests are coming in a later phase.'), findsOneWidget);
-  });
-
   testWidgets('the Map tab lists properties with distance-from-campus text',
       (tester) async {
     await _loginAsStudent(tester);

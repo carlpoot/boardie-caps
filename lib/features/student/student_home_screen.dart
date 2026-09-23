@@ -5,17 +5,17 @@ import 'package:go_router/go_router.dart';
 import '../auth/providers/auth_notifier.dart';
 import 'home/home_tab_screen.dart';
 import 'map/map_view.dart';
+import 'profile/profile_screen.dart';
+import 'reservations/reservations_screen.dart';
 
 Future<void> _logout(BuildContext context, WidgetRef ref) async {
   await ref.read(authNotifierProvider.notifier).logout();
   if (context.mounted) context.go('/login');
 }
 
-/// Bottom-nav shell for the student role: Home (browse) and Map tabs.
-///
-/// Visit requests, room requests/holds, saved-properties list, compare, and
-/// profile management are Phase 3b -- this phase is browsing and property
-/// details only.
+/// Bottom-nav shell for the student role: Home (browse), Map, Reservations,
+/// and Profile tabs. Compare Properties is reached from Home/Saved, not a
+/// bottom-nav destination of its own.
 class StudentHomeScreen extends ConsumerStatefulWidget {
   const StudentHomeScreen({super.key});
 
@@ -26,7 +26,12 @@ class StudentHomeScreen extends ConsumerStatefulWidget {
 class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
   int _tabIndex = 0;
 
-  static const _tabs = [HomeTabScreen(), MapView()];
+  static const _tabs = [
+    HomeTabScreen(),
+    MapView(),
+    ReservationsScreen(),
+    ProfileScreen(),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +61,16 @@ class _StudentHomeScreenState extends ConsumerState<StudentHomeScreen> {
             icon: Icon(Icons.map_outlined),
             selectedIcon: Icon(Icons.map),
             label: 'Map',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.event_note_outlined),
+            selectedIcon: Icon(Icons.event_note),
+            label: 'Reservations',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: 'Profile',
           ),
         ],
       ),
